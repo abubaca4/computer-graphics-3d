@@ -376,6 +376,9 @@ QColor MainWindow::color_multiplication(const QColor &a, const QColor &b){
     result_r = result_r > 1 ? 1 : result_r;
     result_g = result_g > 1 ? 1 : result_g;
     result_b = result_b > 1 ? 1 : result_b;
+    result_r = result_r < 0 ? 0 : result_r;
+    result_g = result_g < 0 ? 0 : result_g;
+    result_b = result_b < 0 ? 0 : result_b;
     return QColor(result_r * 255, result_g * 255, result_b * 255);
 }
 
@@ -389,6 +392,9 @@ QColor MainWindow::color_multiplication(const QColor &a, const qreal &b){
     result_r = result_r > 1 ? 1 : result_r;
     result_g = result_g > 1 ? 1 : result_g;
     result_b = result_b > 1 ? 1 : result_b;
+    result_r = result_r < 0 ? 0 : result_r;
+    result_g = result_g < 0 ? 0 : result_g;
+    result_b = result_b < 0 ? 0 : result_b;
     return QColor(result_r * 255, result_g * 255, result_b * 255);
 }
 
@@ -403,6 +409,9 @@ QColor MainWindow::color_sum(const QColor &a, const QColor &b){
     result_r = result_r > 1 ? 1 : result_r;
     result_g = result_g > 1 ? 1 : result_g;
     result_b = result_b > 1 ? 1 : result_b;
+    result_r = result_r < 0 ? 0 : result_r;
+    result_g = result_g < 0 ? 0 : result_g;
+    result_b = result_b < 0 ? 0 : result_b;
     return QColor(result_r * 255, result_g * 255, result_b * 255);
 }
 
