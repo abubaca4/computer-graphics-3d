@@ -959,6 +959,9 @@ void MainWindow::draw_phong(QImage &draw_buffer, QVector<QVector<qreal>> &z_buff
                 diffuse[i] = color_sum(diffuse[i], d[i]);
             }
 
+            if (SPECULAR_COEFF == 0)
+                continue;
+
             //if (std::max_element(d.begin(), d.end())->blackF() < 0.001 && std::max_element(d.begin(), d.end())->blueF() < 0.001 && std::max_element(d.begin(), d.end())->greenF() < .001)
             //    continue;
 
