@@ -155,12 +155,12 @@ private:
     static void draw_gouraud(QImage &draw_buffer, QVector<QVector<qreal>> &z_buffer, const QVector<QPair<int, QVector<qreal>>> &triangle, const QVector<QColor> &colors);
     static void draw_phong(QImage &draw_buffer, QVector<QVector<qreal>> &z_buffer, const QVector<QPair<int, QVector<qreal>>> &triangle, const QVector<qreal> &plane, const QColor &color, const QVector<PointLight> &lights);
 
-    QImage draw_buffer;
+    QImage draw_buffer, clear_draw_buffer;
     Shading current_shading;
     QVector<Cube> objects;
     QVector<qreal> camera_pos, camera_angles;
     Cube *selected_object = NULL;
     QVector<PointLight> point_lights;
-    QVector<QVector<qreal>> z_buffer;
+    QVector<QVector<qreal>> z_buffer, clear_z_buffer;
 };
 #endif // MAINWINDOW_H

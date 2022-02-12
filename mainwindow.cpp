@@ -6,8 +6,9 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    draw_buffer = QImage(SCREEN_WIDTH, SCREEN_HEIGHT, QImage::Format_RGB32);
-    z_buffer = QVector<QVector<qreal>>(SCREEN_WIDTH, QVector<qreal>(SCREEN_HEIGHT, std::numeric_limits<qreal>::infinity()));
+    clear_draw_buffer = QImage(SCREEN_WIDTH, SCREEN_HEIGHT, QImage::Format_RGB32);
+    clear_draw_buffer.fill(Qt::black);
+    clear_z_buffer = QVector<QVector<qreal>>(SCREEN_WIDTH, QVector<qreal>(SCREEN_HEIGHT, std::numeric_limits<qreal>::infinity()));
     current_shading = WIREFRAME;
     camera_pos = {0, 0, 5};
     camera_angles = {0, 0, 0};
@@ -1031,8 +1032,8 @@ void MainWindow::draw_phong(QImage &draw_buffer, QVector<QVector<qreal>> &z_buff
 void MainWindow::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
-    draw_buffer = QImage(SCREEN_WIDTH, SCREEN_HEIGHT, QImage::Format_RGB32);
-    z_buffer = QVector<QVector<qreal>>(SCREEN_WIDTH, QVector<qreal>(SCREEN_HEIGHT, std::numeric_limits<qreal>::infinity()));
+    draw_buffer = clear_draw_buffer;
+    z_buffer = clear_z_buffer;
     for (auto &light: point_lights) {
         auto cube = Cube(0.1);
         cube.translate_cube(light.point.x, light.point.y, light.point.z);
