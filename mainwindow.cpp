@@ -425,8 +425,8 @@ template <class T>
 QVector<QVector<T>> MainWindow::matrix_multiplication(const QVector<QVector<T>> &a, const QVector<QVector<T>> &b){
     QVector<QVector<T>> result(a.size(), QVector<T>(b[0].size(), T()));
     for (qsizetype i = 0; i < result.size(); i++) {
-        for (qsizetype j = 0; j < result[i].size(); j++) {
-            for (qsizetype k = 0; k < a[0].size(); k++) {
+        for (qsizetype k = 0; k < a[0].size(); k++) {
+            for (qsizetype j = 0; j < result[i].size(); j++) {
                 result[i][j] += a[i][k] * b[k][j];
             }
         }
