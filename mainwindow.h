@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <tuple>
 #include <limits>
+#include <execution>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -107,20 +108,20 @@ private:
     template <class T>
     static QVector<T> vector_division(const QVector<T> &a, const QVector<T> &b);
     template <class T>
-    static QVector<T> vector_sum(const QVector<T> &a, const T &b);
+    static QVector<T> vector_sum(QVector<T> a, const T &b);
     template <class T>
     static QVector<T> vector_sum(const QVector<T> &a, const QVector<T> &b);
     template <class T>
-    static QVector<T> vector_multiplication(const QVector<T> &a, const T &b);
+    static QVector<T> vector_multiplication(QVector<T> a, const T &b);
     template <class T>
     static QVector<T> vector_multiplication(const QVector<T> &a, const QVector<T> &b);
     template <class T>
-    static QVector<T> vector_minus(const QVector<T> &a, const T &b);
+    static QVector<T> vector_minus(QVector<T> a, const T &b);
     template <class T>
-    static QVector<T> vector_minus(const T &b, const QVector<T> &a);
+    static QVector<T> vector_minus(const T &b, QVector<T> a);
     template <class T>
     static QVector<T> vector_minus(const QVector<T> &a, const QVector<T> &b);
-    static QVector<qreal> vector_abs(const QVector<qreal> &a);
+    static QVector<qreal> vector_abs(QVector<qreal> a);
 
     static QPair<QVector<QVector<qreal>>, QVector<QVector<qreal>>> get_c_and_norm(const QVector<QVector<int>> &faces, const QVector<Point3D> &vertices, bool return_planes = false);
     static QVector<QColor> lambert_lighting(const QVector<QVector<int>> &faces, const QVector<Point3D> &vertices, const QVector<PointLight> &point_lights, const QColor &color);

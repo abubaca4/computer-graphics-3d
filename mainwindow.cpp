@@ -233,22 +233,21 @@ MainWindow::Point3D MainWindow::crossProduct(const Point3D &a, const Point3D &b)
 
 template <class T>
 QVector<QVector<T>> MainWindow::vector_minus_mat(const QVector<T> &a, const QVector<QVector<T>> &b){
-    QVector<QVector<T>> result(b.size(), QVector<T>(qMin(a.size(), b[0].size())));
-    for (qsizetype j = 0; j < result.size(); j++) {
-        for (qsizetype i = 0; i < result[j].size(); i++) {
-            result[j][i] = a[i] - b[j][i];
-        }
-    }
+    QVector<QVector<T>> result(b.size());
+    std::transform(std::execution::par_unseq, b.begin(), b.end(), result.begin(), [&](QVector<T> i){
+        std::transform(a.begin(), a.end(), i.begin(), i.begin(), [&](const T &k, const T &l){
+            return k - l;
+        });
+        return i;
+    });
     return result;
 }
 
 QVector<QVector<qreal>> MainWindow::vector_minus_mat(const QVector<qreal> &a, const QVector<Point3D> &b){
-    QVector<QVector<qreal>> result(b.size(), QVector<qreal>(3));
-    for (qsizetype j = 0; j < result.size(); j++) {
-        for (qsizetype i = 0; i < result[j].size(); i++){
-            result[j][i] = a[i] - b[j].to_arr()[i];
-        }
-    }
+    QVector<QVector<qreal>> result(b.size());
+    std::transform(std::execution::par_unseq, b.begin(), b.end(), result.begin(), [&](const Point3D &i){
+        return QVector<qreal>{a[0] - i.x, a[1] - i.y, a[2] - i.z};
+    });
     return result;
 }
 
@@ -272,98 +271,93 @@ QVector<qreal> MainWindow::linspace(qreal x1, qreal x2, int num){
 
 template <class T>
 QVector<T> MainWindow::vector_division(QVector<T> a, const T &b){
-    for (auto &i: a) {
+    std::for_each(std::execution::par_unseq, a.begin(), a.end(), [&](T &i){
         i /= b;
-    }
-    return a;
+    });
+    return a;   
 }
 
 template <class T>
 QVector<T> MainWindow::vector_division(const T &b, QVector<T> a){
-    for (auto &i: a) {
+    std::for_each(std::execution::par_unseq, a.begin(), a.end(), [&](T &i){
         i = b / i;
-    }
+    });
     return a;
 }
 
 template <class T>
 QVector<T> MainWindow::vector_division(const QVector<T> &a, const QVector<T> &b){
     auto result = QVector<T>(qMin(a.size(), b.size()));
-    for (qsizetype i = 0; i < result.size(); i++) {
-        result[i] = a[i] / b[i];
-    }
+    std::transform(std::execution::par_unseq, a.begin(), a.end(), b.begin(), result.begin(), [&](const T &i, const T &j){
+        return i / j;
+    });
     return result;
 }
 
 template <class T>
-QVector<T> MainWindow::vector_sum(const QVector<T> &a, const T &b){
-    auto result = QVector<T>(a.size());
-    for (qsizetype i = 0; i < result.size(); i++) {
-        result[i] = a[i] + b;
-    }
-    return result;
+QVector<T> MainWindow::vector_sum(QVector<T> a, const T &b){
+    std::for_each(std::execution::par_unseq, a.begin(), a.end(), [&](T &i){
+        i += b;
+    });
+    return a;
 }
 
 template <class T>
 QVector<T> MainWindow::vector_sum(const QVector<T> &a, const QVector<T> &b){
     auto result = QVector<T>(qMin(a.size(), b.size()));
-    for (qsizetype i = 0; i < result.size(); i++) {
-        result[i] = a[i] + b[i];
-    }
+    std::transform(std::execution::par_unseq, a.begin(), a.end(), b.begin(), result.begin(), [&](const T &i, const T &j){
+        return i + j;
+    });
     return result;
 }
 
 template <class T>
-QVector<T> MainWindow::vector_multiplication(const QVector<T> &a, const T &b){
-    auto result = QVector<T>(a.size());
-    for (qsizetype i = 0; i < result.size(); i++) {
-        result[i] = a[i] * b;
-    }
-    return result;
+QVector<T> MainWindow::vector_multiplication(QVector<T> a, const T &b){
+    std::for_each(std::execution::par_unseq, a.begin(), a.end(), [&](T &i){
+        i *= b;
+    });
+    return a;
 }
 
 template <class T>
 QVector<T> MainWindow::vector_multiplication(const QVector<T> &a, const QVector<T> &b){
     auto result = QVector<T>(qMin(a.size(), b.size()));
-    for (qsizetype i = 0; i < result.size(); i++) {
-        result[i] = a[i] * b[i];
-    }
+    std::transform(std::execution::par_unseq, a.begin(), a.end(), b.begin(), result.begin(), [&](const T &i, const T &j){
+        return i * j;
+    });
     return result;
 }
 
 template <class T>
-QVector<T> MainWindow::vector_minus(const QVector<T> &a, const T &b){
-    auto result = QVector<T>(a.size());
-    for (qsizetype i = 0; i < result.size(); i++) {
-        result[i] = a[i] - b;
-    }
-    return result;
+QVector<T> MainWindow::vector_minus(QVector<T> a, const T &b){
+    std::for_each(std::execution::par_unseq, a.begin(), a.end(), [&](T &i){
+        i -= b;
+    });
+    return a;
 }
 
 template <class T>
-QVector<T> MainWindow::vector_minus(const T &b, const QVector<T> &a){
-    auto result = QVector<T>(a.size());
-    for (qsizetype i = 0; i < result.size(); i++) {
-        result[i] = b - a[i];
-    }
-    return result;
+QVector<T> MainWindow::vector_minus(const T &b, QVector<T> a){
+    std::for_each(std::execution::par_unseq, a.begin(), a.end(), [&](T &i){
+        i = b - i;
+    });
+    return a;
 }
 
 template <class T>
 QVector<T> MainWindow::vector_minus(const QVector<T> &a, const QVector<T> &b){
     auto result = QVector<T>(qMin(a.size(), b.size()));
-    for (qsizetype i = 0; i < result.size(); i++) {
-        result[i] = a[i] - b[i];
-    }
+    std::transform(std::execution::par_unseq, a.begin(), a.end(), b.begin(), result.begin(), [&](const T &i, const T &j){
+        return i - j;
+    });
     return result;
 }
 
-QVector<qreal> MainWindow::vector_abs(const QVector<qreal> &a){
-    auto result = a;
-    for (auto &i: result) {
+QVector<qreal> MainWindow::vector_abs(QVector<qreal> a){
+    std::for_each(std::execution::par_unseq, a.begin(), a.end(), [&](qreal &i){
         i = qFabs(i);
-    }
-    return result;
+    });
+    return a;
 }
 
 QColor MainWindow::color_multiplication(const QColor &a, const QColor &b){
