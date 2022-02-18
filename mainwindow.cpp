@@ -53,30 +53,25 @@ QVector<QVector<qreal>> MainWindow::rotation_matrix(QVector<qreal> axis, qreal t
 }
 
 qreal MainWindow::dot(const QVector<qreal> &a, const QVector<qreal> &b){
-    qreal result = 0;
-    for (qsizetype i = 0; i < qMin(a.size(), b.size()); i++)
-    {
-        result += a[i] * b[i];
-    }
-    return result;
+    auto temp = vector_multiplication(a, b);
+    return std::accumulate(temp.begin(), temp.end(), (qreal)0.0);
 }
 
 QVector<qreal> MainWindow::dot(const QVector<QVector<qreal>> &matrix, const QVector<qreal> &vector){
     QVector<qreal> result(vector.size(), 0);
-    for (qsizetype i = 0; i < matrix.size(); i++) {
-        for (qsizetype j = 0; j < matrix[i].size(); j++) {
-            result[i] += matrix[i][j] * vector[j];
-        }
-    }
+    std::transform(std::execution::par_unseq, matrix.begin(), matrix.end(), result.begin(), [&](const auto &i){
+        auto temp = vector_multiplication(i, vector);
+        return std::accumulate(temp.begin(), temp.end(), (qreal)0.0);
+    });
     return result;
 }
 
 QVector<qreal> MainWindow::dot(const QVector<qreal> &vector, const QVector<QVector<qreal>> &matrix){
     QVector<qreal> result(matrix[0].size(), 0);
     for (qsizetype i = 0; i < matrix.size(); i++) {
-        for (qsizetype j = 0; j < matrix[i].size(); j++) {
-            result[j] += matrix[i][j] * vector[i];
-        }
+        std::transform(std::execution::par_unseq, matrix[i].begin(), matrix[i].end(), result.begin(), result.begin(), [&](const auto &f, const auto &s){
+            return s + f * vector[i];
+        });
     }
     return result;
 }
@@ -536,7 +531,7 @@ MainWindow::Cube::Cube(qreal size, QColor color){
 QVector<MainWindow::Point3D> MainWindow::Cube::transform_vertices(const QVector<qreal> &camera_pos, const QVector<qreal> &camera_angles, bool project) const{
     QVector<Point3D> result = vertices;
 
-    for (auto &vertex: result){
+    std::for_each(std::execution::par_unseq, result.begin(), result.end(), [&](auto &vertex){
         vertex = vertex.rotate(angles[0], angles[1], angles[2]);
         vertex.x += camera_pos[0] + pos[0];
         vertex.y += camera_pos[1] + pos[1];
@@ -547,12 +542,12 @@ QVector<MainWindow::Point3D> MainWindow::Cube::transform_vertices(const QVector<
         if (project){
             vertex = vertex.project();
         }
-    }
+    });
     return result;
 }
 
 QVector<QPair<qsizetype, qreal>> MainWindow::Cube::calculate_avg_z(const QVector<Point3D> &vertices) const{
-    QVector<QPair<qsizetype, qreal>> avg_z;
+    QVector<QPair<qsizetype, qreal>> avg_z(faces.size());
     for (qsizetype i = 0; i < faces.size(); i++) {
         auto &face = faces[i];
         auto z = (vertices[face[0]].z +
@@ -709,9 +704,9 @@ std::tuple<QVector<bool>, QVector<qreal>, QVector<qreal>, QVector<qreal>> MainWi
     auto A3 = area(x1, y1, x2, y2, x, y);
     auto temp_v = vector_minus(vector_sum(A1, vector_sum(A2, A3)), A);
     QVector<bool> bool_result(temp_v.size());
-    for (qsizetype i = 0; i < temp_v.size(); i++) {
-        bool_result[i] = temp_v[i] < 0.001;
-    }
+    std::transform(std::execution::par_unseq, temp_v.begin(), temp_v.end(), bool_result.begin(), [&](const qreal &i){
+        return i < 0.001;
+    });
     return std::make_tuple(bool_result, vector_division(A1, A), vector_division(A2, A), vector_division(A3, A));
 }
 
@@ -731,25 +726,20 @@ std::tuple<QVector<qreal>, QVector<qreal>, QVector<QVector<qreal>>> MainWindow::
         if (x_min == x_max || y_min == y_max)
             x_delta = y_delta = 1;
     }
-    QVector<qreal> X((qsizetype)(x_delta * y_delta)), Y((qsizetype)(x_delta * y_delta));
-    for (qsizetype i = 0; i < (qsizetype)x_delta; i++) {
-        for (qsizetype j = 0; j < (qsizetype)y_delta; j++) {
+    QVector<qreal> X(x_delta * y_delta), Y(x_delta * y_delta);
+    for (qsizetype i = 0; i < x_delta; i++) {
+        for (qsizetype j = 0; j < y_delta; j++) {
             X[i * y_delta + j] = i;
             Y[i * y_delta + j] = j;
         }
     }
     {
         QVector<bool> screen_mask((qsizetype)(x_delta * y_delta));
-        auto temp = vector_sum(X, (qreal)x_min);
-        for (qsizetype i = 0; i < temp.size(); i++) {
-            screen_mask[i] = temp[i] > 0;
-            screen_mask[i] = screen_mask[i] && (temp[i] < SCREEN_WIDTH);
-        }
-        temp = vector_sum(Y, (qreal)y_min);
-        for (qsizetype i = 0; i < temp.size(); i++) {
-            screen_mask[i] = screen_mask[i] && (temp[i] > 0);
-            screen_mask[i] = screen_mask[i] && (temp[i] < SCREEN_HEIGHT);
-        }
+        auto temp_x = vector_sum(X, (qreal)x_min);
+        auto temp_y = vector_sum(Y, (qreal)y_min);
+        std::transform(std::execution::par_unseq, temp_x.begin(), temp_x.end(), temp_y.begin(), screen_mask.begin(), [&](const auto &i, const auto &j){
+            return (i > 0 && i < SCREEN_WIDTH && j > 0 && j < SCREEN_HEIGHT);
+        });
         QVector<qreal> new_X, new_Y;
         for (qsizetype i = 0; i < screen_mask.size(); i++){
             if (screen_mask[i]){
@@ -785,14 +775,9 @@ std::tuple<QVector<qreal>, QVector<qreal>, QVector<QVector<qreal>>> MainWindow::
 
 QVector<bool> MainWindow::screen_space(const QImage &draw_buffer, const QVector<qreal> &x, const QVector<qreal> &y){
     QVector<bool> result(x.size());
-    for (qsizetype i = 0; i < result.size(); i++) {
-        result[i] = x[i] >= 0;
-        result[i] = result[i] && (x[i] < draw_buffer.width());
-    }
-    for (qsizetype i = 0; i < result.size(); i++){
-        result[i] = result[i] && (y[i] >= 0);
-        result[i] = result[i] && (y[i] < draw_buffer.height());
-    }
+    std::transform(std::execution::par_unseq, x.begin(), x.end(), y.begin(),  result.begin(), [&](qreal i, qreal j){
+        return (i >= 0 && i < draw_buffer.width() && j >= 0 && j < draw_buffer.height());
+    });
     return result;
 }
 
@@ -894,8 +879,8 @@ void MainWindow::draw_phong(QImage &draw_buffer, QVector<QVector<qreal>> &z_buff
         QVector<QColor> diffuse(X.size(), QColor(0, 0, 0)), specular(X.size(), QColor(0, 0, 0));
         for (auto &light: lights){
             const auto &[light_pos, light_color] = light.to_arr();
-            QVector<QVector<qreal>> xyz = {X, Y, Z};
-            auto l = vector_minus_mat(light_pos, matrix_transpose(xyz));
+            auto xyz_transpose = matrix_transpose(QVector<QVector<qreal>>{X, Y, Z});
+            auto l = vector_minus_mat(light_pos, xyz_transpose);
 
             QVector<qreal> n = {plane[0], plane[1], plane[2]};
             auto n_norm = qSqrt(qPow(n[0], 2) + qPow(n[1], 2) + qPow(n[2], 2));
@@ -903,56 +888,52 @@ void MainWindow::draw_phong(QImage &draw_buffer, QVector<QVector<qreal>> &z_buff
 
             {
                 auto temp_l = l;
-                for (auto &i: temp_l) {
-                    for (auto &j: i) {
+                std::for_each(std::execution::par_unseq, temp_l.begin(), temp_l.end(), [&](auto &i){
+                    std::for_each(i.begin(), i.end(), [](auto &j){
                         j *= j;
-                    }
-                }
+                    });
+                });
                 QVector<qreal> l_norm(l.size());
-                for (qsizetype i = 0; i < temp_l.size(); i++) {
-                    l_norm[i] = 0;
-                    for (auto &j: temp_l[i]) {
-                        l_norm[i] += j;
-                    }
-                    l_norm[i] = qSqrt(l_norm[i]);
-                }
-                for (qsizetype i = 0; i < l.size(); i++) {
-                    l[i][0] /= l_norm[i];
-                    l[i][1] /= l_norm[i];
-                    l[i][2] /= l_norm[i];
-                }
+                std::transform(std::execution::par_unseq, temp_l.begin(), temp_l.end(), l_norm.begin(), [&](const auto &i){
+                    return qSqrt(std::accumulate(i.begin(), i.end(), (qreal)0.0));
+                });
+                std::transform(std::execution::par_unseq, l.begin(), l.end(), l_norm.begin(), l.begin(), [&](auto i, const auto &norm){
+                    i[0] /= norm;
+                    i[1] /= norm;
+                    i[2] /= norm;
+                    return i;
+                });
             }
 
             auto r = vector_minus_mat(vector_multiplication(n, 2.0), l);
             {
                 auto temp_r = r;
-                for (auto &i: temp_r) {
-                    for (auto &j: i) {
+                std::for_each(std::execution::par_unseq, temp_r.begin(), temp_r.end(), [&](auto &i){
+                    std::for_each(i.begin(), i.end(), [](auto &j){
                         j *= j;
-                    }
-                }
+                    });
+                });
                 QVector<qreal> r_norm(r.size());
-                for (qsizetype i = 0; i < temp_r.size(); i++) {
-                    r_norm[i] = 0;
-                    for (auto &j: temp_r[i]) {
-                        r_norm[i] += j;
-                    }
-                    r_norm[i] = qSqrt(r_norm[i]);
-                }
-                for (qsizetype i = 0; i < r.size(); i++) {
-                    r[i][0] /= r_norm[i];
-                    r[i][1] /= r_norm[i];
-                    r[i][2] /= r_norm[i];
-                }
+                std::transform(std::execution::par_unseq, temp_r.begin(), temp_r.end(), r_norm.begin(), [&](const auto &i){
+                    return qSqrt(std::accumulate(i.begin(), i.end(), (qreal)0.0));
+                });
+                std::transform(std::execution::par_unseq, r.begin(), r.end(), r_norm.begin(), r.begin(), [&](auto i, const auto &norm){
+                    i[0] /= norm;
+                    i[1] /= norm;
+                    i[2] /= norm;
+                    return i;
+                });
             }
 
-            QVector<QColor> d;
-            for (auto &i: dot(n, matrix_transpose(l))) {
-                d.push_back(color_multiplication(color_multiplication(light_color, i), DIFFUSE_COEFF));
-            }
-            for (qsizetype i = 0; i < diffuse.size(); i++) {
-                diffuse[i] = color_sum(diffuse[i], d[i]);
-            }
+            QVector<QColor> d(l.size());
+            auto light_color_copy = light_color;
+            auto t = dot(n, matrix_transpose(l));
+            std::transform(std::execution::par_unseq, d.begin(), d.end(), t.begin(), d.begin(), [&](const auto &i, const auto &j){
+                return color_multiplication(color_multiplication(light_color_copy, j), DIFFUSE_COEFF);
+            });
+            std::transform(std::execution::par_unseq, d.begin(), d.end(), diffuse.begin(), diffuse.begin(), [&](const auto &i, const auto &j){
+                return color_sum(i, j);
+            });
 
             if (SPECULAR_COEFF == 0)
                 continue;
@@ -960,58 +941,51 @@ void MainWindow::draw_phong(QImage &draw_buffer, QVector<QVector<qreal>> &z_buff
             //if (std::max_element(d.begin(), d.end())->blackF() < 0.001 && std::max_element(d.begin(), d.end())->blueF() < 0.001 && std::max_element(d.begin(), d.end())->greenF() < .001)
             //    continue;
 
-            auto neg_i = matrix_transpose(xyz);
+            auto neg_i = xyz_transpose;
             {
-                for (auto &i: neg_i) {
-                    for (auto &j: i) {
+                std::for_each(std::execution::par_unseq, neg_i.begin(), neg_i.end(), [&](auto &i){
+                    std::for_each(i.begin(), i.end(), [](auto &j){
                         j = -j;
-                    }
-                }
+                    });
+                });
                 auto temp_neg_i = neg_i;
-                for (auto &i: temp_neg_i) {
-                    for (auto &j: i) {
+                std::for_each(std::execution::par_unseq, temp_neg_i.begin(), temp_neg_i.end(), [&](auto &i){
+                    std::for_each(i.begin(), i.end(), [](auto &j){
                         j *= j;
-                    }
-                }
+                    });
+                });
                 QVector<qreal> neg_i_norm(temp_neg_i.size());
-                for (qsizetype i = 0; i < temp_neg_i.size(); i++) {
-                    neg_i_norm[i] = 0;
-                    for (auto &j: temp_neg_i[i]) {
-                        neg_i_norm[i] += j;
-                    }
-                    neg_i_norm[i] = qSqrt(neg_i_norm[i]);
-                }
-                for (qsizetype i = 0; i < neg_i.size(); i++) {
-                    neg_i[i][0] /= neg_i_norm[i];
-                    neg_i[i][1] /= neg_i_norm[i];
-                    neg_i[i][2] /= neg_i_norm[i];
-                }
+                std::transform(std::execution::par_unseq, temp_neg_i.begin(), temp_neg_i.end(), neg_i_norm.begin(), [&](const auto &i){
+                    return qSqrt(std::accumulate(i.begin(), i.end(), (qreal)0.0));
+                });
+                std::transform(std::execution::par_unseq, neg_i.begin(), neg_i.end(), neg_i_norm.begin(), neg_i.begin(), [&](auto i, const auto &norm){
+                    i[0] /= norm;
+                    i[1] /= norm;
+                    i[2] /= norm;
+                    return i;
+                });
             }
 
             auto temp = matrix_multiplication(r, neg_i);
             QVector<qreal> temp_norm(temp.size());
-            for (qsizetype i = 0; i < temp_norm.size(); i++) {
-                temp_norm[i] = 0;
-                for (auto &j: temp[i]) {
-                    temp_norm[i] += j;
-                }
-                temp_norm[i] = temp_norm[i] < 0 ? 0 : temp_norm[i];
-                temp_norm[i] = qPow(temp_norm[i], 50);
-            }
-            QVector<QColor> temp2;
-            for (auto &i: temp_norm) {
-                temp2.push_back(color_multiplication(color_multiplication(light_color, i), SPECULAR_COEFF));
-            }
-            for (qsizetype i = 0; i < specular .size(); i++) {
-                specular[i] = color_sum(specular[i], temp2[i]);
-            }
+            std::transform(std::execution::par_unseq, temp.begin(), temp.end(), temp_norm.begin(), [&](const auto &i){
+                auto res = std::accumulate(i.begin(), i.end(), (qreal)0.0);
+                res = res < 0 ? 0 : res;
+                return qPow(res, 50);
+            });
+            QVector<QColor> temp2(temp_norm.size());
+            std::transform(std::execution::par_unseq, temp_norm.begin(), temp_norm.end(), temp2.begin(), [&](const auto &i){
+                return color_multiplication(color_multiplication(light_color_copy, i), SPECULAR_COEFF);
+            });
+            std::transform(std::execution::par_unseq, temp2.begin(), temp2.end(), specular.begin(), specular.begin(), [&](const auto &i, const auto &j){
+                return color_sum(i, j);
+            });
         }
 
         QVector<QColor> c(X.size(), QColor(0, 0, 0));
-        for (qsizetype i = 0; i < c.size(); i++) {
-            c[i] = color_sum(color_sum(diffuse[i], AMBIENT_COEFF), specular[i]);
-            c[i] = color_multiplication(c[i], color);
-        }
+        std::transform(std::execution::par_unseq, diffuse.begin(), diffuse.end(), specular.begin(), c.begin(), [&](const auto &i, const auto &j){
+            return color_multiplication(color_sum(color_sum(i, AMBIENT_COEFF), j), color);
+        });
 
         for (qsizetype j = 0; j < X.size(); j++) {
             if (z_buffer[(qsizetype)xs[j]][(qsizetype)ys[j]] > Z[j]){

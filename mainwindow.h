@@ -14,6 +14,7 @@
 #include <tuple>
 #include <limits>
 #include <execution>
+#include <ranges>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
