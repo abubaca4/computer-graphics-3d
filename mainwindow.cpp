@@ -59,7 +59,7 @@ qreal MainWindow::dot(const QVector<qreal> &a, const QVector<qreal> &b){
 
 QVector<qreal> MainWindow::dot(const QVector<QVector<qreal>> &matrix, const QVector<qreal> &vector){
     QVector<qreal> result(vector.size(), 0);
-    std::transform(std::execution::par_unseq, matrix.begin(), matrix.end(), result.begin(), [&](const auto &i){
+    std::transform(std::execution::unseq, matrix.begin(), matrix.end(), result.begin(), [&](const auto &i){
         auto temp = vector_multiplication(i, vector);
         return std::accumulate(temp.begin(), temp.end(), (qreal)0.0);
     });
@@ -69,7 +69,7 @@ QVector<qreal> MainWindow::dot(const QVector<QVector<qreal>> &matrix, const QVec
 QVector<qreal> MainWindow::dot(const QVector<qreal> &vector, const QVector<QVector<qreal>> &matrix){
     QVector<qreal> result(matrix[0].size(), 0);
     for (qsizetype i = 0; i < matrix.size(); i++) {
-        std::transform(std::execution::par_unseq, matrix[i].begin(), matrix[i].end(), result.begin(), result.begin(), [&](const auto &f, const auto &s){
+        std::transform(std::execution::unseq, matrix[i].begin(), matrix[i].end(), result.begin(), result.begin(), [&](const auto &f, const auto &s){
             return s + f * vector[i];
         });
     }
@@ -230,7 +230,7 @@ template <class T>
 QVector<QVector<T>> MainWindow::vector_minus_mat(const QVector<T> &a, const QVector<QVector<T>> &b){
     QVector<QVector<T>> result(b.size());
     std::transform(std::execution::par_unseq, b.begin(), b.end(), result.begin(), [&](QVector<T> i){
-        std::transform(a.begin(), a.end(), i.begin(), i.begin(), [&](const T &k, const T &l){
+        std::transform(std::execution::unseq, a.begin(), a.end(), i.begin(), i.begin(), [&](const T &k, const T &l){
             return k - l;
         });
         return i;
@@ -266,7 +266,7 @@ QVector<qreal> MainWindow::linspace(qreal x1, qreal x2, int num){
 
 template <class T>
 QVector<T> MainWindow::vector_division(QVector<T> a, const T &b){
-    std::for_each(std::execution::par_unseq, a.begin(), a.end(), [&](T &i){
+    std::for_each(std::execution::unseq, a.begin(), a.end(), [&](T &i){
         i /= b;
     });
     return a;   
@@ -274,7 +274,7 @@ QVector<T> MainWindow::vector_division(QVector<T> a, const T &b){
 
 template <class T>
 QVector<T> MainWindow::vector_division(const T &b, QVector<T> a){
-    std::for_each(std::execution::par_unseq, a.begin(), a.end(), [&](T &i){
+    std::for_each(std::execution::unseq, a.begin(), a.end(), [&](T &i){
         i = b / i;
     });
     return a;
@@ -283,7 +283,7 @@ QVector<T> MainWindow::vector_division(const T &b, QVector<T> a){
 template <class T>
 QVector<T> MainWindow::vector_division(const QVector<T> &a, const QVector<T> &b){
     auto result = QVector<T>(qMin(a.size(), b.size()));
-    std::transform(std::execution::par_unseq, a.begin(), a.end(), b.begin(), result.begin(), [&](const T &i, const T &j){
+    std::transform(std::execution::unseq, a.begin(), a.end(), b.begin(), result.begin(), [&](const T &i, const T &j){
         return i / j;
     });
     return result;
@@ -291,7 +291,7 @@ QVector<T> MainWindow::vector_division(const QVector<T> &a, const QVector<T> &b)
 
 template <class T>
 QVector<T> MainWindow::vector_sum(QVector<T> a, const T &b){
-    std::for_each(std::execution::par_unseq, a.begin(), a.end(), [&](T &i){
+    std::for_each(std::execution::unseq, a.begin(), a.end(), [&](T &i){
         i += b;
     });
     return a;
@@ -300,7 +300,7 @@ QVector<T> MainWindow::vector_sum(QVector<T> a, const T &b){
 template <class T>
 QVector<T> MainWindow::vector_sum(const QVector<T> &a, const QVector<T> &b){
     auto result = QVector<T>(qMin(a.size(), b.size()));
-    std::transform(std::execution::par_unseq, a.begin(), a.end(), b.begin(), result.begin(), [&](const T &i, const T &j){
+    std::transform(std::execution::unseq, a.begin(), a.end(), b.begin(), result.begin(), [&](const T &i, const T &j){
         return i + j;
     });
     return result;
@@ -308,7 +308,7 @@ QVector<T> MainWindow::vector_sum(const QVector<T> &a, const QVector<T> &b){
 
 template <class T>
 QVector<T> MainWindow::vector_multiplication(QVector<T> a, const T &b){
-    std::for_each(std::execution::par_unseq, a.begin(), a.end(), [&](T &i){
+    std::for_each(std::execution::unseq, a.begin(), a.end(), [&](T &i){
         i *= b;
     });
     return a;
@@ -317,7 +317,7 @@ QVector<T> MainWindow::vector_multiplication(QVector<T> a, const T &b){
 template <class T>
 QVector<T> MainWindow::vector_multiplication(const QVector<T> &a, const QVector<T> &b){
     auto result = QVector<T>(qMin(a.size(), b.size()));
-    std::transform(std::execution::par_unseq, a.begin(), a.end(), b.begin(), result.begin(), [&](const T &i, const T &j){
+    std::transform(std::execution::unseq, a.begin(), a.end(), b.begin(), result.begin(), [&](const T &i, const T &j){
         return i * j;
     });
     return result;
@@ -325,7 +325,7 @@ QVector<T> MainWindow::vector_multiplication(const QVector<T> &a, const QVector<
 
 template <class T>
 QVector<T> MainWindow::vector_minus(QVector<T> a, const T &b){
-    std::for_each(std::execution::par_unseq, a.begin(), a.end(), [&](T &i){
+    std::for_each(std::execution::unseq, a.begin(), a.end(), [&](T &i){
         i -= b;
     });
     return a;
@@ -333,7 +333,7 @@ QVector<T> MainWindow::vector_minus(QVector<T> a, const T &b){
 
 template <class T>
 QVector<T> MainWindow::vector_minus(const T &b, QVector<T> a){
-    std::for_each(std::execution::par_unseq, a.begin(), a.end(), [&](T &i){
+    std::for_each(std::execution::unseq, a.begin(), a.end(), [&](T &i){
         i = b - i;
     });
     return a;
@@ -342,14 +342,14 @@ QVector<T> MainWindow::vector_minus(const T &b, QVector<T> a){
 template <class T>
 QVector<T> MainWindow::vector_minus(const QVector<T> &a, const QVector<T> &b){
     auto result = QVector<T>(qMin(a.size(), b.size()));
-    std::transform(std::execution::par_unseq, a.begin(), a.end(), b.begin(), result.begin(), [&](const T &i, const T &j){
+    std::transform(std::execution::unseq, a.begin(), a.end(), b.begin(), result.begin(), [&](const T &i, const T &j){
         return i - j;
     });
     return result;
 }
 
 QVector<qreal> MainWindow::vector_abs(QVector<qreal> a){
-    std::for_each(std::execution::par_unseq, a.begin(), a.end(), [&](qreal &i){
+    std::for_each(std::execution::unseq, a.begin(), a.end(), [&](qreal &i){
         i = qFabs(i);
     });
     return a;
@@ -531,7 +531,7 @@ MainWindow::Cube::Cube(qreal size, QColor color){
 QVector<MainWindow::Point3D> MainWindow::Cube::transform_vertices(const QVector<qreal> &camera_pos, const QVector<qreal> &camera_angles, bool project) const{
     QVector<Point3D> result = vertices;
 
-    std::for_each(std::execution::par_unseq, result.begin(), result.end(), [&](auto &vertex){
+    std::for_each(std::execution::unseq, result.begin(), result.end(), [&](auto &vertex){
         vertex = vertex.rotate(angles[0], angles[1], angles[2]);
         vertex.x += camera_pos[0] + pos[0];
         vertex.y += camera_pos[1] + pos[1];
@@ -704,7 +704,7 @@ std::tuple<QVector<bool>, QVector<qreal>, QVector<qreal>, QVector<qreal>> MainWi
     auto A3 = area(x1, y1, x2, y2, x, y);
     auto temp_v = vector_minus(vector_sum(A1, vector_sum(A2, A3)), A);
     QVector<bool> bool_result(temp_v.size());
-    std::transform(std::execution::par_unseq, temp_v.begin(), temp_v.end(), bool_result.begin(), [&](const qreal &i){
+    std::transform(std::execution::unseq, temp_v.begin(), temp_v.end(), bool_result.begin(), [&](const qreal &i){
         return i < 0.001;
     });
     return std::make_tuple(bool_result, vector_division(A1, A), vector_division(A2, A), vector_division(A3, A));
@@ -737,7 +737,7 @@ std::tuple<QVector<qreal>, QVector<qreal>, QVector<QVector<qreal>>> MainWindow::
         QVector<bool> screen_mask((qsizetype)(x_delta * y_delta));
         auto temp_x = vector_sum(X, (qreal)x_min);
         auto temp_y = vector_sum(Y, (qreal)y_min);
-        std::transform(std::execution::par_unseq, temp_x.begin(), temp_x.end(), temp_y.begin(), screen_mask.begin(), [&](const auto &i, const auto &j){
+        std::transform(std::execution::unseq, temp_x.begin(), temp_x.end(), temp_y.begin(), screen_mask.begin(), [&](const auto &i, const auto &j){
             return (i > 0 && i < SCREEN_WIDTH && j > 0 && j < SCREEN_HEIGHT);
         });
         QVector<qreal> new_X, new_Y;
@@ -775,7 +775,7 @@ std::tuple<QVector<qreal>, QVector<qreal>, QVector<QVector<qreal>>> MainWindow::
 
 QVector<bool> MainWindow::screen_space(const QImage &draw_buffer, const QVector<qreal> &x, const QVector<qreal> &y){
     QVector<bool> result(x.size());
-    std::transform(std::execution::par_unseq, x.begin(), x.end(), y.begin(),  result.begin(), [&](qreal i, qreal j){
+    std::transform(std::execution::unseq, x.begin(), x.end(), y.begin(),  result.begin(), [&](qreal i, qreal j){
         return (i >= 0 && i < draw_buffer.width() && j >= 0 && j < draw_buffer.height());
     });
     return result;
@@ -888,16 +888,16 @@ void MainWindow::draw_phong(QImage &draw_buffer, QVector<QVector<qreal>> &z_buff
 
             {
                 auto temp_l = l;
-                std::for_each(std::execution::par_unseq, temp_l.begin(), temp_l.end(), [&](auto &i){
-                    std::for_each(i.begin(), i.end(), [](auto &j){
+                std::for_each(std::execution::unseq, temp_l.begin(), temp_l.end(), [&](auto &i){
+                    std::for_each(std::execution::unseq, i.begin(), i.end(), [](auto &j){
                         j *= j;
                     });
                 });
                 QVector<qreal> l_norm(l.size());
-                std::transform(std::execution::par_unseq, temp_l.begin(), temp_l.end(), l_norm.begin(), [&](const auto &i){
+                std::transform(std::execution::unseq, temp_l.begin(), temp_l.end(), l_norm.begin(), [&](const auto &i){
                     return qSqrt(std::accumulate(i.begin(), i.end(), (qreal)0.0));
                 });
-                std::transform(std::execution::par_unseq, l.begin(), l.end(), l_norm.begin(), l.begin(), [&](auto i, const auto &norm){
+                std::transform(std::execution::unseq, l.begin(), l.end(), l_norm.begin(), l.begin(), [&](auto i, const auto &norm){
                     i[0] /= norm;
                     i[1] /= norm;
                     i[2] /= norm;
@@ -908,16 +908,16 @@ void MainWindow::draw_phong(QImage &draw_buffer, QVector<QVector<qreal>> &z_buff
             auto r = vector_minus_mat(vector_multiplication(n, 2.0), l);
             {
                 auto temp_r = r;
-                std::for_each(std::execution::par_unseq, temp_r.begin(), temp_r.end(), [&](auto &i){
-                    std::for_each(i.begin(), i.end(), [](auto &j){
+                std::for_each(std::execution::unseq, temp_r.begin(), temp_r.end(), [&](auto &i){
+                    std::for_each(std::execution::unseq, i.begin(), i.end(), [](auto &j){
                         j *= j;
                     });
                 });
                 QVector<qreal> r_norm(r.size());
-                std::transform(std::execution::par_unseq, temp_r.begin(), temp_r.end(), r_norm.begin(), [&](const auto &i){
+                std::transform(std::execution::unseq, temp_r.begin(), temp_r.end(), r_norm.begin(), [&](const auto &i){
                     return qSqrt(std::accumulate(i.begin(), i.end(), (qreal)0.0));
                 });
-                std::transform(std::execution::par_unseq, r.begin(), r.end(), r_norm.begin(), r.begin(), [&](auto i, const auto &norm){
+                std::transform(std::execution::unseq, r.begin(), r.end(), r_norm.begin(), r.begin(), [&](auto i, const auto &norm){
                     i[0] /= norm;
                     i[1] /= norm;
                     i[2] /= norm;
@@ -928,10 +928,11 @@ void MainWindow::draw_phong(QImage &draw_buffer, QVector<QVector<qreal>> &z_buff
             QVector<QColor> d(l.size());
             auto light_color_copy = light_color;
             auto t = dot(n, matrix_transpose(l));
-            std::transform(std::execution::par_unseq, d.begin(), d.end(), t.begin(), d.begin(), [&](const auto &i, const auto &j){
+            std::transform(std::execution::unseq, d.begin(), d.end(), t.begin(), d.begin(), [&](const auto &i, const auto &j){
+                Q_UNUSED(i);
                 return color_multiplication(color_multiplication(light_color_copy, j), DIFFUSE_COEFF);
             });
-            std::transform(std::execution::par_unseq, d.begin(), d.end(), diffuse.begin(), diffuse.begin(), [&](const auto &i, const auto &j){
+            std::transform(std::execution::unseq, d.begin(), d.end(), diffuse.begin(), diffuse.begin(), [&](const auto &i, const auto &j){
                 return color_sum(i, j);
             });
 
@@ -943,22 +944,22 @@ void MainWindow::draw_phong(QImage &draw_buffer, QVector<QVector<qreal>> &z_buff
 
             auto neg_i = xyz_transpose;
             {
-                std::for_each(std::execution::par_unseq, neg_i.begin(), neg_i.end(), [&](auto &i){
-                    std::for_each(i.begin(), i.end(), [](auto &j){
+                std::for_each(std::execution::unseq, neg_i.begin(), neg_i.end(), [&](auto &i){
+                    std::for_each(std::execution::unseq, i.begin(), i.end(), [](auto &j){
                         j = -j;
                     });
                 });
                 auto temp_neg_i = neg_i;
-                std::for_each(std::execution::par_unseq, temp_neg_i.begin(), temp_neg_i.end(), [&](auto &i){
-                    std::for_each(i.begin(), i.end(), [](auto &j){
+                std::for_each(std::execution::unseq, temp_neg_i.begin(), temp_neg_i.end(), [&](auto &i){
+                    std::for_each(std::execution::unseq, i.begin(), i.end(), [](auto &j){
                         j *= j;
                     });
                 });
                 QVector<qreal> neg_i_norm(temp_neg_i.size());
-                std::transform(std::execution::par_unseq, temp_neg_i.begin(), temp_neg_i.end(), neg_i_norm.begin(), [&](const auto &i){
+                std::transform(std::execution::unseq, temp_neg_i.begin(), temp_neg_i.end(), neg_i_norm.begin(), [&](const auto &i){
                     return qSqrt(std::accumulate(i.begin(), i.end(), (qreal)0.0));
                 });
-                std::transform(std::execution::par_unseq, neg_i.begin(), neg_i.end(), neg_i_norm.begin(), neg_i.begin(), [&](auto i, const auto &norm){
+                std::transform(std::execution::unseq, neg_i.begin(), neg_i.end(), neg_i_norm.begin(), neg_i.begin(), [&](auto i, const auto &norm){
                     i[0] /= norm;
                     i[1] /= norm;
                     i[2] /= norm;
@@ -968,22 +969,22 @@ void MainWindow::draw_phong(QImage &draw_buffer, QVector<QVector<qreal>> &z_buff
 
             auto temp = matrix_multiplication(r, neg_i);
             QVector<qreal> temp_norm(temp.size());
-            std::transform(std::execution::par_unseq, temp.begin(), temp.end(), temp_norm.begin(), [&](const auto &i){
+            std::transform(std::execution::unseq, temp.begin(), temp.end(), temp_norm.begin(), [&](const auto &i){
                 auto res = std::accumulate(i.begin(), i.end(), (qreal)0.0);
                 res = res < 0 ? 0 : res;
                 return qPow(res, 50);
             });
             QVector<QColor> temp2(temp_norm.size());
-            std::transform(std::execution::par_unseq, temp_norm.begin(), temp_norm.end(), temp2.begin(), [&](const auto &i){
+            std::transform(std::execution::unseq, temp_norm.begin(), temp_norm.end(), temp2.begin(), [&](const auto &i){
                 return color_multiplication(color_multiplication(light_color_copy, i), SPECULAR_COEFF);
             });
-            std::transform(std::execution::par_unseq, temp2.begin(), temp2.end(), specular.begin(), specular.begin(), [&](const auto &i, const auto &j){
+            std::transform(std::execution::unseq, temp2.begin(), temp2.end(), specular.begin(), specular.begin(), [&](const auto &i, const auto &j){
                 return color_sum(i, j);
             });
         }
 
         QVector<QColor> c(X.size(), QColor(0, 0, 0));
-        std::transform(std::execution::par_unseq, diffuse.begin(), diffuse.end(), specular.begin(), c.begin(), [&](const auto &i, const auto &j){
+        std::transform(std::execution::unseq, diffuse.begin(), diffuse.end(), specular.begin(), c.begin(), [&](const auto &i, const auto &j){
             return color_multiplication(color_sum(color_sum(i, AMBIENT_COEFF), j), color);
         });
 
@@ -1000,6 +1001,7 @@ void MainWindow::draw_phong(QImage &draw_buffer, QVector<QVector<qreal>> &z_buff
 void MainWindow::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
+    auto t1 = std::chrono::high_resolution_clock::now();
     draw_buffer = clear_draw_buffer;
     z_buffer = clear_z_buffer;
     for (auto &light: point_lights) {
@@ -1049,6 +1051,8 @@ void MainWindow::paintEvent(QPaintEvent *event)
     }
     QPainter painter(this);
     painter.drawImage(0, 0, draw_buffer);
+    auto t2 = std::chrono::high_resolution_clock::now();
+    qDebug() << duration_cast<std::chrono::duration<double>>(t2 - t1).count();
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event){

@@ -9,12 +9,13 @@
 #include <QColor>
 #include <QImage>
 #include <QPainter>
+#include <QDebug>
 
 #include <algorithm>
 #include <tuple>
 #include <limits>
 #include <execution>
-#include <ranges>
+#include <chrono>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
