@@ -1111,25 +1111,25 @@ void MainWindow::keyPressEvent(QKeyEvent *event){
 
     case Qt::Key_T:
         if (selected_object != NULL){
-            selected_object->angles[0] -= 0.2;
+            selected_object->angles[0] -= 0.4;
         }
         break;
 
     case Qt::Key_G:
         if (selected_object != NULL){
-            selected_object->angles[0] += 0.2;
+            selected_object->angles[0] += 0.4;
         }
         break;
 
     case Qt::Key_F:
         if (selected_object != NULL){
-            selected_object->angles[1] -= 0.2;
+            selected_object->angles[1] -= 0.4;
         }
         break;
 
     case Qt::Key_H:
         if (selected_object != NULL){
-            selected_object->angles[1] += 0.2;
+            selected_object->angles[1] += 0.4;
         }
         break;
 
